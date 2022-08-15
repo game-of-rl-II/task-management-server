@@ -14,9 +14,7 @@ const corsConfig = {
 app.use(cors(corsConfig));
 app.use(express.json());
 app.options("*", cors(corsConfig));
-
 const uri = `mongodb+srv://${process.env.DB_Name}:${process.env.DB_KEY}@cluster0.u6i9ya9.mongodb.net/?retryWrites=true&w=majority`;
-
 const client = new MongoClient(uri, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
