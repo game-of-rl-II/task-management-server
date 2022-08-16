@@ -26,7 +26,7 @@ const client = new MongoClient(uri, {
 const run = async () => {
   try {
     await client.connect();
-    console.log('db connected')
+    const membersCollection = client.db('gameOfRL').collection('members')
     // These all codes done by faridul haque for manage attendance page. 
     const faridCollection = client.db("Farid").collection("first");
     app.get('/manage-attendance', async (req, res) => {
@@ -46,6 +46,11 @@ const run = async () => {
       };
       const result = await faridCollection.updateOne(filter, data, options);
       res.send(result);
+    })
+    app.post('/add-new-member', async (req, res) => {
+      const newMember = req.body;
+      const result = await membersCollection.insertOne(newMember)
+      res.send(result)
     })
     // codes for manageAttendance page by faridul haque done here
   }
