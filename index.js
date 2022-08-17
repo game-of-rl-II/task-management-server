@@ -26,16 +26,19 @@ const client = new MongoClient(uri, {
 const run = async () => {
   try {
     await client.connect();
-    console.log('db connected')
-    // These all codes done by faridul haque for manage attendance page. 
+    console.log("db connected");
+    // These all codes done by faridul haque for manage attendance page.
     const faridCollection = client.db("Farid").collection("first");
-    app.get('/manage-attendance', async (req, res) => {
+
+    // db collecntion for complete task page
+    const completeTaskCollection = client.db("AlaminArif").collection("completeTask");
+    app.get("/manage-attendance", async (req, res) => {
       const filter = {};
       const cursor = faridCollection.find(filter);
       const result = await cursor.toArray();
       res.send(result);
-    })
-    app.put('/manage-attendance/present/:id', async (req, res) => {
+    });
+    app.put("/manage-attendance/present/:id", async (req, res) => {
       const id = req.params.id;
       const filter = { _id: ObjectId(id) };
       const options = { upsert: true };
@@ -46,13 +49,18 @@ const run = async () => {
       };
       const result = await faridCollection.updateOne(filter, data, options);
       res.send(result);
-    })
+    });
     // codes for manageAttendance page by faridul haque done here
-  }
-  finally {
 
+    // codes for Compled task list by Al amin Arif
+    app.get("/complete-task", async (req, res) => {
+      const query = {};
+      const result = await completeTaskCollection.find(query).toArray();
+      res.send(result);
+    });
+  } finally {
   }
-}
+};
 run().catch(console.dir);
 // testing localhost 5000
 app.get("/", (req, res) => {
