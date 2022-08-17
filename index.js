@@ -30,6 +30,7 @@ const run = async () => {
     // These all codes done by faridul haque for manage attendance page.
     const faridCollection = client.db("Farid").collection("first");
     const taskCollection = client.db("Arif").collection("memberTasks");
+    const assignTaskCollection = client.db("Shuvo").collection("memberTask");
     app.get("/manage-attendance", async (req, res) => {
       const filter = {};
       const cursor = faridCollection.find(filter);
@@ -62,6 +63,20 @@ const run = async () => {
       const task = await taskCollection.findOne(query);
       res.send(task);
     });
+
+    // delete a member (shuvo).......
+    app.delete("/task/:id", async(req, res) =>{
+      const id = req.params.id;
+      const query = {_id: ObjectId(id)};
+      const result = await taskCollection.deleteOne(query);
+      res.send(result);
+  });
+  // post assign-task (shuvo)...........
+  app.post("/assign-task", async (req, res) => {
+    const task = req.body;
+    const result = await assignTaskCollection.insertOne(task);
+    res.send(result);
+  });
     // codes for manageAttendance page by faridul haque done here
   } finally {
   }
