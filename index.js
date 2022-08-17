@@ -55,7 +55,7 @@ const run = async () => {
     // codes for Compled task list by Al amin Arif
     app.get("/complete-task", async (req, res) => {
       const query = {};
-      const result = await completeTaskCollection.find(query).toArray();
+      const result = await (await completeTaskCollection.find(query).toArray()).reverse();
       res.send(result);
     });
   } finally {
