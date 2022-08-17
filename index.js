@@ -27,6 +27,8 @@ const run = async () => {
     console.log('db connected')
     // These all codes done by faridul haque for manage attendance page. 
     const faridCollection = client.db("Farid").collection("first");
+    const taskCollection = client.db("Arif").collection("memberTasks");
+    const reviewCollection = client.db("Arif").collection("reviews");
     app.get('/manage-attendance', async (req, res) => {
       const filter = {};
       const cursor = faridCollection.find(filter);
@@ -46,6 +48,37 @@ const run = async () => {
       res.send(result);
     })
     // codes for manageAttendance page by faridul haque done here
+
+
+     //get member task details by arif islam
+
+       // get all task
+    app.get("/task", async (req, res) => {
+      const query = {};
+      const cursor = taskCollection.find(query);
+      const tasks = await cursor.toArray();
+      res.send(tasks);
+    });
+    // get task of a member
+     app.get("/task/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const task = await taskCollection.findOne(query);
+      res.send(task);
+    });
+     // post review to a member
+     app.post("/review", async (req, res) => {
+      const review = req.body;
+      const result = await reviewCollection.insertOne(review);
+      res.send(result);
+    });
+    // get all the reviews
+    app.get("/review", async (req, res) => {
+      const query = {};
+      const cursor = reviewCollection.find(query);
+      const review = await cursor.toArray();
+      res.send(review);
+    });
   }
   finally {
 
