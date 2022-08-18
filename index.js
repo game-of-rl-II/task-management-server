@@ -35,6 +35,17 @@ const run = async () => {
       const result = await cursor.toArray();
       res.send(result);
     })
+    app.get('/member-login/:id', async (req, res) =>{
+      const memberId = req.params.id;
+      const query = {id: memberId};
+      const member = await membersCollection.findOne(query)
+     
+      if(member){
+        return res.send(member)
+      }
+      
+      return res.send({message: 'user not found'})
+    })
     app.put('/manage-attendance/present/:id', async (req, res) => {
       const id = req.params.id;
       const filter = { _id: ObjectId(id) };
