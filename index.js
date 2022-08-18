@@ -48,14 +48,14 @@ const run = async () => {
       const result = await faridCollection.updateOne(filter, data, options);
       res.send(result);
     });
-    // get all task
+    // get all task (Nabin>>>)
     app.get("/task", async (req, res) => {
       const query = {};
       const cursor = taskCollection.find(query);
       const tasks = await cursor.toArray();
       res.send(tasks);
     });
-    // get task of a member
+    // get task of a member (Nabin>>>)
     app.get("/task/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
