@@ -29,8 +29,8 @@ const run = async () => {
     console.log("db connected");
     // These all codes done by faridul haque for manage attendance page.
     const faridCollection = client.db("Farid").collection("first");
-    const taskCollection = client.db("Arif").collection("memberTasks");
-    const assignTaskCollection = client.db("Shuvo").collection("memberTask");
+    // const taskCollection = client.db("Arif").collection("memberTasks");
+    const tasksCollection = client.db("Shuvo").collection("memberTask");
     app.get("/manage-attendance", async (req, res) => {
       const filter = {};
       const cursor = faridCollection.find(filter);
@@ -52,7 +52,7 @@ const run = async () => {
     // get all task
     app.get("/task", async (req, res) => {
       const query = {};
-      const cursor = taskCollection.find(query);
+      const cursor = tasksCollection.find(query);
       const tasks = await cursor.toArray();
       res.send(tasks);
     });
@@ -60,7 +60,7 @@ const run = async () => {
     app.get("/task/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
-      const task = await taskCollection.findOne(query);
+      const task = await tasksCollection.findOne(query);
       res.send(task);
     });
 
@@ -68,7 +68,7 @@ const run = async () => {
     app.delete("/task/:id", async(req, res) =>{
       const id = req.params.id;
       const query = {_id: ObjectId(id)};
-      const result = await taskCollection.deleteOne(query);
+      const result = await tasksCollection.deleteOne(query);
       res.send(result);
   });
   // post assign-task (shuvo)...........
@@ -77,7 +77,6 @@ const run = async () => {
     const result = await assignTaskCollection.insertOne(task);
     res.send(result);
   });
-    // codes for manageAttendance page by faridul haque done here
   } finally {
   }
 };
