@@ -27,17 +27,37 @@ const run = async () => {
   try {
     await client.connect();
     console.log("db connected");
-    // These all codes done by faridul haque for manage attendance page.
-    const faridCollection = client.db("Farid").collection("first");
-    // const taskCollection = client.db("Arif").collection("memberTasks");
-    const tasksCollection = client.db("Shuvo").collection("memberTask");
+
+    const membersCollection = client.db('gameOfRL').collection('members')
+    const tasksCollection = client.db("gameOfRL").collection("tasks");
+
+    app.get('/member-login/:id', async (req, res) => {
+      const memberId = req.params.id;
+      const query = { id: memberId };
+      const member = await membersCollection.findOne(query)
+
+      if (member) {
+        return res.send(member)
+      }
+
+      return res.send({ message: 'user not found' })
+    })
+
+    app.post('/add-new-member', async (req, res) => {
+      const newMember = req.body;
+      const result = await membersCollection.insertOne(newMember)
+      res.send(result)
+    })
+
     app.get("/manage-attendance", async (req, res) => {
       const filter = {};
-      const cursor = faridCollection.find(filter);
+      const cursor = tasksCollection.find(filter);
       const result = await cursor.toArray();
       res.send(result);
     });
-    app.put("/manage-attendance/present/:id", async (req, res) => {
+
+
+    app.put('/manage-attendance/present/:id', async (req, res) => {
       const id = req.params.id;
       const filter = { _id: ObjectId(id) };
       const options = { upsert: true };
@@ -46,7 +66,7 @@ const run = async () => {
           presentStatus: true,
         },
       };
-      const result = await faridCollection.updateOne(filter, data, options);
+      const result = await tasksCollection.updateOne(filter, data, options);
       res.send(result);
     });
     // get all task
@@ -64,19 +84,32 @@ const run = async () => {
       res.send(task);
     });
 
+    // get all member 
+    
+    app.get("/members", async (req, res) => {
+      const query = {};
+      const cursor = membersCollection.find(query);
+      const tasks = await cursor.toArray();
+      res.send(tasks);
+    });
     // delete a member (shuvo).......
-    app.delete("/task/:id", async(req, res) =>{
+    app.delete("/member/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: ObjectId(id)};
-      const result = await tasksCollection.deleteOne(query);
+      const query = { _id: ObjectId(id) };
+      const result = await membersCollection.deleteOne(query);
       res.send(result);
-  });
-  // post assign-task (shuvo)...........
-  app.post("/assign-task", async (req, res) => {
-    const task = req.body;
-    const result = await assignTaskCollection.insertOne(task);
-    res.send(result);
-  });
+    });
+
+    app.post("/assign-task", async (req, res) => {
+      const task = req.body;
+      const result = await tasksCollection.insertOne(task);
+      res.send(result);
+    });
+
+
+
+
+
   } finally {
   }
 };
