@@ -27,10 +27,10 @@ const run = async () => {
   try {
     await client.connect();
     console.log("db connected");
-
+    const adminsCollection = client.db('gameOfRL').collection('admins')
     const membersCollection = client.db('gameOfRL').collection('members')
     const tasksCollection = client.db("gameOfRL").collection("tasks");
-    
+
 
     app.get('/member-login/:id', async (req, res) => {
       const memberId = req.params.id;
@@ -49,16 +49,23 @@ const run = async () => {
       const result = await membersCollection.insertOne(newMember)
       res.send(result)
     })
+    app.post('/new-admin', async (req, res) => {
+      const newAdmin = req.body;
+      const result = await adminsCollection.insertOne(newAdmin)
+      res.send(result)
+    })
 
+
+    // db collecntion for complete task page
+    const completeTaskCollection = client.db("AlaminArif").collection("completeTask");
     app.get("/manage-attendance", async (req, res) => {
       const filter = {};
-      const cursor = tasksCollection.find(filter);
+      const cursor = completeTaskCollection.find(filter);
       const result = await cursor.toArray();
       res.send(result);
     });
 
-
-    app.put('/manage-attendance/present/:id', async (req, res) => {
+    app.put("/manage-attendance/present/:id", async (req, res) => {
       const id = req.params.id;
       const filter = { _id: ObjectId(id) };
       const options = { upsert: true };
@@ -86,12 +93,14 @@ const run = async () => {
     });
 
     // get all member 
-    
+
     app.get("/members", async (req, res) => {
-      const query = {};
+      const email = req.query.email;
+
+      const query = { adminEmail: email };
       const cursor = membersCollection.find(query);
-      const tasks = await cursor.toArray();
-      res.send(tasks);
+      const result = await cursor.toArray();
+      res.send(result);
     });
     // delete a member (shuvo).......
     app.delete("/member/:id", async (req, res) => {
