@@ -27,15 +27,44 @@ const run = async () => {
   try {
     await client.connect();
     console.log("db connected");
-    // These all codes done by faridul haque for manage attendance page.
-    const faridCollection = client.db("Farid").collection("first");
-    const taskCollection = client.db("Arif").collection("memberTasks");
+    const adminsCollection = client.db('gameOfRL').collection('admins')
+    const membersCollection = client.db('gameOfRL').collection('members')
+    const tasksCollection = client.db("gameOfRL").collection("tasks");
+
+
+    app.get('/member-login/:id', async (req, res) => {
+      const memberId = req.params.id;
+      const query = { id: memberId };
+      const member = await membersCollection.findOne(query)
+
+      if (member) {
+        return res.send(member)
+      }
+
+      return res.send({ message: 'user not found' })
+    })
+
+    app.post('/add-new-member', async (req, res) => {
+      const newMember = req.body;
+      const result = await membersCollection.insertOne(newMember)
+      res.send(result)
+    })
+    app.post('/new-admin', async (req, res) => {
+      const newAdmin = req.body;
+      const result = await adminsCollection.insertOne(newAdmin)
+      res.send(result)
+    })
+
+
+    // db collecntion for complete task page
+    const completeTaskCollection = client.db("AlaminArif").collection("completeTask");
     app.get("/manage-attendance", async (req, res) => {
       const filter = {};
-      const cursor = faridCollection.find(filter);
+      const cursor = completeTaskCollection.find(filter);
       const result = await cursor.toArray();
       res.send(result);
     });
+
     app.put("/manage-attendance/present/:id", async (req, res) => {
       const id = req.params.id;
       const filter = { _id: ObjectId(id) };
@@ -45,13 +74,13 @@ const run = async () => {
           presentStatus: true,
         },
       };
-      const result = await faridCollection.updateOne(filter, data, options);
+      const result = await tasksCollection.updateOne(filter, data, options);
       res.send(result);
     });
     // get all task (Nabin>>>)
     app.get("/task", async (req, res) => {
       const query = {};
-      const cursor = taskCollection.find(query);
+      const cursor = tasksCollection.find(query);
       const tasks = await cursor.toArray();
       res.send(tasks);
     });
@@ -59,10 +88,38 @@ const run = async () => {
     app.get("/task/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
-      const task = await taskCollection.findOne(query);
+      const task = await tasksCollection.findOne(query);
       res.send(task);
     });
-    // codes for manageAttendance page by faridul haque done here
+
+    // get all member 
+
+    app.get("/members", async (req, res) => {
+      const email = req.query.email;
+
+      const query = { adminEmail: email };
+      const cursor = membersCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+    // delete a member (shuvo).......
+    app.delete("/member/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await membersCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    app.post("/assign-task", async (req, res) => {
+      const task = req.body;
+      const result = await tasksCollection.insertOne(task);
+      res.send(result);
+    });
+
+
+
+
+
   } finally {
   }
 };
