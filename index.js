@@ -85,11 +85,13 @@ const run = async () => {
       res.send(tasks);
     });
     // get task of a member
-    app.get("/task/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: ObjectId(id) };
-      const task = await tasksCollection.findOne(query);
-      res.send(task);
+    app.get("/taskMember", async (req, res) => {
+      const id = req.query.id;
+      
+      const query = { memberId: id };
+      const cursor = tasksCollection.find(query);
+      const tasks = await cursor.toArray();
+      res.send(tasks);
     });
 
     // get all member 
@@ -115,6 +117,19 @@ const run = async () => {
       const result = await tasksCollection.insertOne(task);
       res.send(result);
     });
+
+    app.put('/task-member/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = {_id: ObjectId(id)}
+      const options = {upsert: true};
+      const data = {
+        $set: { 
+          taskCompletion : true
+        }
+      }
+      const result = await tasksCollection.updateOne(query, data, options);
+      res.send(result)
+    })
 
 
 
