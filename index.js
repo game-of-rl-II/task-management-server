@@ -56,14 +56,7 @@ const run = async () => {
     })
 
 
-    // db collecntion for complete task page
-    const completeTaskCollection = client.db("AlaminArif").collection("completeTask");
-    app.get("/manage-attendance", async (req, res) => {
-      const filter = {};
-      const cursor = completeTaskCollection.find(filter);
-      const result = await cursor.toArray();
-      res.send(result);
-    });
+
 
     app.put("/manage-attendance/present/:id", async (req, res) => {
       const id = req.params.id;
@@ -77,6 +70,22 @@ const run = async () => {
       const result = await tasksCollection.updateOne(filter, data, options);
       res.send(result);
     });
+    // add review 
+    app.put("/add-review/:memberId", async (req, res) => {
+      const memberId = req.params.memberId;
+      console.log(memberId)
+      const body = req.body
+      const filter = { memberId: memberId };
+      const options = { upsert: true };
+      const data = {
+        $set: {
+          rating: body.rating,
+          comment: body.description
+        },
+      };
+      const result = await membersCollection.updateOne(filter, data, options);
+      res.send(result)
+    });
     // get all task
     app.get("/task", async (req, res) => {
       const query = {};
@@ -87,7 +96,7 @@ const run = async () => {
     // get task of a member
     app.get("/taskMember", async (req, res) => {
       const id = req.query.id;
-      
+
       const query = { memberId: id };
       const cursor = tasksCollection.find(query);
       const tasks = await cursor.toArray();
@@ -120,11 +129,11 @@ const run = async () => {
 
     app.put('/task-member/:id', async (req, res) => {
       const id = req.params.id;
-      const query = {_id: ObjectId(id)}
-      const options = {upsert: true};
+      const query = { _id: ObjectId(id) }
+      const options = { upsert: true };
       const data = {
-        $set: { 
-          taskCompletion : true
+        $set: {
+          taskCompletion: true
         }
       }
       const result = await tasksCollection.updateOne(query, data, options);
