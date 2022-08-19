@@ -50,7 +50,7 @@ const run = async () => {
     // codes for manageAttendance page by faridul haque done here
 
 
-     //get member task details by arif islam
+     //create api by arif islam
 
        // get all task
     app.get("/task", async (req, res) => {
@@ -79,6 +79,22 @@ const run = async () => {
       const review = await cursor.toArray();
       res.send(review);
     });
+
+       //update member's task status 
+       app.put('/task/:id' , async (req, res) => {
+        const id = req.params.id;
+        const filter = {_id: ObjectId(id)}
+        const options = { upsert: true };
+        const updateDoc = {
+          $set: {
+            status : "completed"
+
+          },
+        };
+        const result = await taskCollection.updateOne(filter, updateDoc, options);
+        res.send(result);
+      })
+  
   }
   finally {
 
