@@ -56,6 +56,7 @@ const run = async () => {
     app.get("/complete-task", async (req, res) => {
       const query = {};
       const result = await (await completeTaskCollection.find(query).toArray()).reverse();
+      const crusore = completeTaskCollection.find(query);
       res.send(result);
     });
   } finally {
