@@ -27,17 +27,37 @@ const run = async () => {
   try {
     await client.connect();
     console.log("db connected");
-    // These all codes done by faridul haque for manage attendance page.
-    const faridCollection = client.db("Farid").collection("first");
+    const adminsCollection = client.db('gameOfRL').collection('admins')
+    const membersCollection = client.db('gameOfRL').collection('members')
+    const tasksCollection = client.db("gameOfRL").collection("tasks");
 
-    // db collecntion for complete task page
-    const completeTaskCollection = client.db("AlaminArif").collection("completeTask");
-    app.get("/manage-attendance", async (req, res) => {
-      const filter = {};
-      const cursor = faridCollection.find(filter);
-      const result = await cursor.toArray();
-      res.send(result);
-    });
+
+    app.get('/member-login/:id', async (req, res) => {
+      const memberId = req.params.id;
+      const query = { id: memberId };
+      const member = await membersCollection.findOne(query)
+
+      if (member) {
+        return res.send(member)
+      }
+
+      return res.send({ message: 'user not found' })
+    })
+
+    app.post('/add-new-member', async (req, res) => {
+      const newMember = req.body;
+      const result = await membersCollection.insertOne(newMember)
+      res.send(result)
+    })
+    app.post('/new-admin', async (req, res) => {
+      const newAdmin = req.body;
+      const result = await adminsCollection.insertOne(newAdmin)
+      res.send(result)
+    })
+
+
+
+
     app.put("/manage-attendance/present/:id", async (req, res) => {
       const id = req.params.id;
       const filter = { _id: ObjectId(id) };
@@ -47,18 +67,83 @@ const run = async () => {
           presentStatus: true,
         },
       };
-      const result = await faridCollection.updateOne(filter, data, options);
+      const result = await tasksCollection.updateOne(filter, data, options);
       res.send(result);
     });
-    // codes for manageAttendance page by faridul haque done here
-
-    // codes for Compled task list by Al amin Arif
-    app.get("/complete-task", async (req, res) => {
+    // add review 
+    app.put("/add-review/:memberId", async (req, res) => {
+      const memberId = req.params.memberId;
+      console.log(memberId)
+      const body = req.body
+      const filter = { memberId: memberId };
+      const options = { upsert: true };
+      const data = {
+        $set: {
+          rating: body.rating,
+          comment: body.description
+        },
+      };
+      const result = await membersCollection.updateOne(filter, data, options);
+      res.send(result)
+    });
+    // get all task
+    app.get("/task", async (req, res) => {
       const query = {};
-      const result = await (await completeTaskCollection.find(query).toArray()).reverse();
-      const crusore = completeTaskCollection.find(query);
+      const cursor = tasksCollection.find(query);
+      const tasks = await cursor.toArray();
+      res.send(tasks);
+    });
+    // get task of a member
+    app.get("/taskMember", async (req, res) => {
+      const id = req.query.id;
+
+      const query = { memberId: id };
+      const cursor = tasksCollection.find(query);
+      const tasks = await cursor.toArray();
+      res.send(tasks);
+    });
+
+    // get all member 
+
+    app.get("/members", async (req, res) => {
+      const email = req.query.email;
+
+      const query = { adminEmail: email };
+      const cursor = membersCollection.find(query);
+      const result = await cursor.toArray();
       res.send(result);
     });
+    // delete a member (shuvo).......
+    app.delete("/member/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await membersCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    app.post("/assign-task", async (req, res) => {
+      const task = req.body;
+      const result = await tasksCollection.insertOne(task);
+      res.send(result);
+    });
+
+    app.put('/task-member/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) }
+      const options = { upsert: true };
+      const data = {
+        $set: {
+          taskCompletion: true
+        }
+      }
+      const result = await tasksCollection.updateOne(query, data, options);
+      res.send(result)
+    })
+
+
+
+
+
   } finally {
   }
 };
