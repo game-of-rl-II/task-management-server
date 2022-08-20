@@ -1,19 +1,30 @@
+// const express = require("express");
+// const cors = require("cors");
+
+// require("dotenv").config();
+// const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+// const port = process.env.PORT || 5000;
+
+// const app = express();
+// const corsConfig = {
+//   origin: true,
+//   credentials: true,
+// };
+
+// app.use(cors(corsConfig));
+// app.use(express.json());
+// app.options("*", cors(corsConfig));
+
 const express = require("express");
 const cors = require("cors");
-
-require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+require("dotenv").config();
+const app = express();
 const port = process.env.PORT || 5000;
 
-const app = express();
-const corsConfig = {
-  origin: true,
-  credentials: true,
-};
-
-app.use(cors(corsConfig));
+// middleware
+app.use(cors());
 app.use(express.json());
-app.options("*", cors(corsConfig));
 
 const uri = `mongodb+srv://${process.env.DB_Name}:${process.env.DB_KEY}@cluster0.u6i9ya9.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -27,36 +38,32 @@ const run = async () => {
   try {
     await client.connect();
     console.log("db connected");
-    const adminsCollection = client.db('gameOfRL').collection('admins')
-    const membersCollection = client.db('gameOfRL').collection('members')
+    const adminsCollection = client.db("gameOfRL").collection("admins");
+    const membersCollection = client.db("gameOfRL").collection("members");
     const tasksCollection = client.db("gameOfRL").collection("tasks");
 
-
-    app.get('/member-login/:id', async (req, res) => {
+    app.get("/member-login/:id", async (req, res) => {
       const memberId = req.params.id;
       const query = { id: memberId };
-      const member = await membersCollection.findOne(query)
+      const member = await membersCollection.findOne(query);
 
       if (member) {
-        return res.send(member)
+        return res.send(member);
       }
 
-      return res.send({ message: 'user not found' })
-    })
+      return res.send({ message: "user not found" });
+    });
 
-    app.post('/add-new-member', async (req, res) => {
+    app.post("/add-new-member", async (req, res) => {
       const newMember = req.body;
-      const result = await membersCollection.insertOne(newMember)
-      res.send(result)
-    })
-    app.post('/new-admin', async (req, res) => {
+      const result = await membersCollection.insertOne(newMember);
+      res.send(result);
+    });
+    app.post("/new-admin", async (req, res) => {
       const newAdmin = req.body;
-      const result = await adminsCollection.insertOne(newAdmin)
-      res.send(result)
-    })
-
-
-
+      const result = await adminsCollection.insertOne(newAdmin);
+      res.send(result);
+    });
 
     app.put("/manage-attendance/present/:id", async (req, res) => {
       const id = req.params.id;
@@ -70,21 +77,21 @@ const run = async () => {
       const result = await tasksCollection.updateOne(filter, data, options);
       res.send(result);
     });
-    // add review 
+    // add review
     app.put("/add-review/:memberId", async (req, res) => {
       const memberId = req.params.memberId;
-      console.log(memberId)
-      const body = req.body
+      console.log(memberId);
+      const body = req.body;
       const filter = { memberId: memberId };
       const options = { upsert: true };
       const data = {
         $set: {
           rating: body.rating,
-          comment: body.description
+          comment: body.description,
         },
       };
       const result = await membersCollection.updateOne(filter, data, options);
-      res.send(result)
+      res.send(result);
     });
     // get all task
     app.get("/task", async (req, res) => {
@@ -103,7 +110,7 @@ const run = async () => {
       res.send(tasks);
     });
 
-    // get all member 
+    // get all member
 
     app.get("/members", async (req, res) => {
       const email = req.query.email;
@@ -127,23 +134,18 @@ const run = async () => {
       res.send(result);
     });
 
-    app.put('/task-member/:id', async (req, res) => {
+    app.put("/task-member/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { _id: ObjectId(id) }
+      const query = { _id: ObjectId(id) };
       const options = { upsert: true };
       const data = {
         $set: {
-          taskCompletion: true
-        }
-      }
+          taskCompletion: true,
+        },
+      };
       const result = await tasksCollection.updateOne(query, data, options);
-      res.send(result)
-    })
-
-
-
-
-
+      res.send(result);
+    });
   } finally {
   }
 };
