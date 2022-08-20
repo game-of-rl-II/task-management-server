@@ -27,19 +27,6 @@ const run = async () => {
   try {
     await client.connect();
     console.log("db connected");
-
-    // These all codes done by faridul haque for manage attendance page.
-    const faridCollection = client.db("Farid").collection("first");
-
-    // db collecntion for complete task page
-    const completeTaskCollection = client.db("AlaminArif").collection("completeTask");
-    app.get("/manage-attendance", async (req, res) => {
-      const filter = {};
-      const cursor = faridCollection.find(filter);
-      const result = await cursor.toArray();
-      res.send(result);
-    });
-
     const adminsCollection = client.db("gameOfRL").collection("admins");
     const membersCollection = client.db("gameOfRL").collection("members");
     const tasksCollection = client.db("gameOfRL").collection("tasks");
@@ -61,7 +48,6 @@ const run = async () => {
       const result = await membersCollection.insertOne(newMember);
       res.send(result);
     });
-
     app.post("/new-admin", async (req, res) => {
       const newAdmin = req.body;
       const result = await adminsCollection.insertOne(newAdmin);
@@ -80,17 +66,6 @@ const run = async () => {
       const result = await tasksCollection.updateOne(filter, data, options);
       res.send(result);
     });
-
-    // codes for manageAttendance page by faridul haque done here
-
-    // codes for Compled task list by Al amin Arif
-    app.get("/complete-task", async (req, res) => {
-      const query = {};
-      const result = await (await completeTaskCollection.find(query).toArray()).reverse();
-      const crusore = completeTaskCollection.find(query);
-      res.send(result);
-    });
-
     // add review
     app.put("/add-review/:memberId", async (req, res) => {
       const memberId = req.params.memberId;
