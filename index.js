@@ -1,30 +1,30 @@
-// const express = require("express");
-// const cors = require("cors");
-
-// require("dotenv").config();
-// const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-// const port = process.env.PORT || 5000;
-
-// const app = express();
-// const corsConfig = {
-//   origin: true,
-//   credentials: true,
-// };
-
-// app.use(cors(corsConfig));
-// app.use(express.json());
-// app.options("*", cors(corsConfig));
-
 const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+
 require("dotenv").config();
-const app = express();
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 5000;
 
-// middleware
-app.use(cors());
+const app = express();
+const corsConfig = {
+  origin: true,
+  credentials: true,
+};
+
+app.use(cors(corsConfig));
 app.use(express.json());
+app.options("*", cors(corsConfig));
+
+// const express = require("express");
+// const cors = require("cors");
+// const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+// require("dotenv").config();
+// const app = express();
+// const port = process.env.PORT || 5000;
+
+// // middleware
+// app.use(cors());
+// app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_Name}:${process.env.DB_KEY}@cluster0.u6i9ya9.mongodb.net/?retryWrites=true&w=majority`;
 
