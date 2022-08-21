@@ -26,7 +26,7 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-const uri = `mongodb+srv://${process.env.DB_Name}:${process.env.DB_KEY}@cluster0.u6i9ya9.mongodb.net/?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://gamerl:LmwYybhisaurSQmq@cluster0.u6i9ya9.mongodb.net/?retryWrites=true&w=majority`;
 
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
@@ -56,6 +56,12 @@ const run = async () => {
 
     app.post("/add-new-member", async (req, res) => {
       const newMember = req.body;
+      const memberId = newMember.id;
+      const filter = { id: memberId };
+      const member = await membersCollection.findOne(filter);
+      if (member) {
+        return res.send({ message: "id already used" });
+      }
       const result = await membersCollection.insertOne(newMember);
       res.send(result);
     });
@@ -80,7 +86,6 @@ const run = async () => {
     // add review
     app.put("/add-review/:memberId", async (req, res) => {
       const memberId = req.params.memberId;
-      console.log(memberId);
       const body = req.body;
       const filter = { memberId: memberId };
       const options = { upsert: true };
