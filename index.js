@@ -57,16 +57,25 @@ const run = async () => {
 
     app.post("/add-new-member", async (req, res) => {
       const newMember = req.body;
+<<<<<<< HEAD
       const memberId = newMember.id
       const filter = { id: memberId }
       const member = await membersCollection.findOne(filter);
       console.log(member)
       if (member) {
         return res.send({ message: "id already used" })
+=======
+      const memberId = newMember.id;
+      const filter = { id: memberId };
+      const member = await membersCollection.findOne(filter);
+      if (member) {
+        return res.send({ message: "id already used" });
+>>>>>>> 7ef929f50e7a11681c46e6ef740376246a9e2946
       }
       const result = await membersCollection.insertOne(newMember);
       res.send(result);
     });
+<<<<<<< HEAD
     // creating new team in db
     app.post("/create-team", async (req, res) => {
       const newTeam = req.body;
@@ -93,6 +102,22 @@ const run = async () => {
       }
       res.send({ memberId })
     });
+=======
+
+    // Random id check al amin arif
+    app.post("/random-id-check", async (req, res) => {
+      const body = req.body;
+      const id = body.randomId;
+      const filter = { id: id };
+      const isExsiting = await membersCollection.findOne(filter);
+      if (isExsiting) {
+        return res.send({ message: "found" });
+      } else {
+        return res.send({ id: id });
+      }
+    });
+
+>>>>>>> 7ef929f50e7a11681c46e6ef740376246a9e2946
     app.post("/new-admin", async (req, res) => {
       const newAdmin = req.body;
       const result = await adminsCollection.insertOne(newAdmin);
