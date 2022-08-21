@@ -42,6 +42,7 @@ const run = async () => {
     const membersCollection = client.db("gameOfRL").collection("members");
     const tasksCollection = client.db("gameOfRL").collection("tasks");
     const teamsCollection = client.db("gameOfRL").collection("teams")
+    const activeTeam = client.db('gameOfRL').collection("activeTeam")
 
     app.get("/member-login/:id", async (req, res) => {
       const memberId = req.params.id;
@@ -143,7 +144,15 @@ const run = async () => {
       const tasks = await cursor.toArray();
       res.send(tasks);
     });
+    // get all teamsCollection
+    app.get('/teams/:email', async (req, res) => {
+      const email = req.params.email;
+      const query = { owner: email };
+      const cursor = teamsCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
 
+    })
     // get all member
 
     app.get("/members", async (req, res) => {
@@ -167,6 +176,8 @@ const run = async () => {
       const result = await tasksCollection.insertOne(task);
       res.send(result);
     });
+    
+    
 
     app.put("/task-member/:id", async (req, res) => {
       const id = req.params.id;
