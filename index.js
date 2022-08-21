@@ -41,6 +41,7 @@ const run = async () => {
     const adminsCollection = client.db("gameOfRL").collection("admins");
     const membersCollection = client.db("gameOfRL").collection("members");
     const tasksCollection = client.db("gameOfRL").collection("tasks");
+    const teamsCollection = client.db("gameOfRL").collection("teams")
 
     app.get("/member-login/:id", async (req, res) => {
       const memberId = req.params.id;
@@ -57,13 +58,40 @@ const run = async () => {
     app.post("/add-new-member", async (req, res) => {
       const newMember = req.body;
       const memberId = newMember.id
-      const filter ={id: memberId}
+      const filter = { id: memberId }
       const member = await membersCollection.findOne(filter);
-      if(member){
-        return res.send({ message: "id already used"})
+      console.log(member)
+      if (member) {
+        return res.send({ message: "id already used" })
       }
       const result = await membersCollection.insertOne(newMember);
       res.send(result);
+    });
+    // creating new team in db
+    app.post("/create-team", async (req, res) => {
+      const newTeam = req.body;
+      const teamName = newTeam.teamName;
+      const filter = { teamName: teamName }
+      const team = await teamsCollection.findOne(filter);
+      if (team) {
+        return res.send({ message: "You already have a team with that name. Please try  a new name" })
+      }
+      const result = await teamsCollection.insertOne(newTeam);
+      res.send(result);
+    });
+
+
+    app.get("/random-id-check/:id", async (req, res) => {
+      
+      const memberId = req.params.id;
+
+      const filter = { id: memberId };
+
+      const searchedId = await membersCollection.findOne(filter);
+      if (searchedId) {
+        return res.send({ message: "exist" });
+      }
+      res.send({ memberId })
     });
     app.post("/new-admin", async (req, res) => {
       const newAdmin = req.body;
