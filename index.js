@@ -65,6 +65,20 @@ const run = async () => {
       const result = await membersCollection.insertOne(newMember);
       res.send(result);
     });
+
+    // Random id check al amin arif
+    app.post("/random-id-check", async (req, res) => {
+      const body = req.body;
+      const id = body.randomId;
+      const filter = { id: id };
+      const isExsiting = await membersCollection.findOne(filter);
+      if (isExsiting) {
+        return res.send({ message: "found" });
+      } else {
+        return res.send({ id: id });
+      }
+    });
+
     app.post("/new-admin", async (req, res) => {
       const newAdmin = req.body;
       const result = await adminsCollection.insertOne(newAdmin);
