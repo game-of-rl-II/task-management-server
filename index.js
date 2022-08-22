@@ -157,11 +157,16 @@ const run = async () => {
 
     app.get("/members", async (req, res) => {
       const email = req.query.email;
+      const teamName = req.query.teamName;
 
-      const query = { adminEmail: email };
+      const query = {
+        adminEmail: email,
+        teamName: teamName,
+      };
       const cursor = membersCollection.find(query);
-      const result = await cursor.toArray();
-      res.send(result);
+      const members = await cursor.toArray();
+      
+      res.send(members);
     });
     // delete a member (shuvo).......
     app.delete("/member/:id", async (req, res) => {
@@ -176,8 +181,8 @@ const run = async () => {
       const result = await tasksCollection.insertOne(task);
       res.send(result);
     });
-    
-    
+
+
 
     app.put("/task-member/:id", async (req, res) => {
       const id = req.params.id;
