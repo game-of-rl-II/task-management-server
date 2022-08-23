@@ -131,7 +131,7 @@ const run = async () => {
     // get all task
     app.get("/task/:teamName", async (req, res) => {
       const teamName = req.params.teamName;
-      
+
       const query = {
         teamName: teamName,
       };
@@ -169,9 +169,25 @@ const run = async () => {
       };
       const cursor = membersCollection.find(query);
       const members = await cursor.toArray();
-      
+
       res.send(members);
     });
+    // getting todays task based on new date
+    app.get("/today-tasks", async (req, res) => {
+      const taskDate = req.query.todaysDate;
+      const teamName = req.query.teamName;
+
+      const query = {
+        taskDate: taskDate,
+        teamName: teamName,
+      };
+      const cursor = tasksCollection.find(query);
+      const result = await cursor.toArray();
+
+      res.send(result);
+    });
+
+
     // delete a member (shuvo).......
     app.delete("/member/:id", async (req, res) => {
       const id = req.params.id;
@@ -186,7 +202,7 @@ const run = async () => {
       res.send(result);
     });
 
-    
+
 
 
 
