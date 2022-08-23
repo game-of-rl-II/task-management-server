@@ -129,8 +129,12 @@ const run = async () => {
       res.send(result);
     });
     // get all task
-    app.get("/task", async (req, res) => {
-      const query = {};
+    app.get("/task/:teamName", async (req, res) => {
+      const teamName = req.params.teamName;
+      
+      const query = {
+        teamName: teamName,
+      };
       const cursor = tasksCollection.find(query);
       const tasks = await cursor.toArray();
       res.send(tasks);
@@ -181,6 +185,8 @@ const run = async () => {
       const result = await tasksCollection.insertOne(task);
       res.send(result);
     });
+
+    
 
 
 
