@@ -62,6 +62,13 @@ const run = async () => {
     const memberNotifications = client.db("gameOfRLNotifications").collection("memberNotifications")
 
 
+    // sending password reset request to admin 
+    app.post("/notification-admin", async (req, res) => {
+      const task = req.body;
+      const result = await adminNotifications.insertOne(task);
+      res.send(result);
+    });
+
     app.get("/member-login/:id", async (req, res) => {
       const memberId = req.params.id;
       const query = { id: memberId };
