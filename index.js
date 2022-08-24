@@ -46,7 +46,7 @@ function sendMailToMember(newMember) {
     `
   })
     .then((res) => console.log("Successfully sent", res))
-    .catch((err) => console.log("Failed ", err))
+    .catch((err) => console.log("Failed to send ", err))
 }
 
 const run = async () => {
