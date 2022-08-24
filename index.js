@@ -1,19 +1,4 @@
-// const express = require("express");
-// const cors = require("cors");
 
-// require("dotenv").config();
-// const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-// const port = process.env.PORT || 5000;
-
-// const app = express();
-// const corsConfig = {
-//   origin: true,
-//   credentials: true,
-// };
-
-// app.use(cors(corsConfig));
-// app.use(express.json());
-// app.options("*", cors(corsConfig));
 
 const express = require("express");
 const cors = require("cors");
@@ -21,6 +6,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
+var nodemailer = require('nodemailer');
 
 // middleware
 app.use(cors());
@@ -34,6 +20,36 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
+const transporter = nodemailer.createTransport({
+  service: 'SendinBlue',
+  auth: {
+    user: process.env.SENDER_EMAIL,
+    pass: process.env.SMTP_PASSWORD
+  }
+});
+function sendMailToMember(newMember) {
+  const { adminEmail, name, id, password, memberEmail } = newMember;
+  transporter.sendMail({
+    from: adminEmail,
+    to: memberEmail,
+    subject: `Your member id is ${id} and password is ${password}.`,
+    text: `Your member id is ${id} and password is ${password}.`,
+    html: `
+      <div>
+         <h1> Hello ${name}, </h1>
+         <p>Congratulation!</p>
+         <p>You are selected as a member of our team.</p>
+         <p> Your member Id is ${id} and Password is ${password}.</p>
+  
+         <p>Hathazari, Chittagong.</p>
+         <p>Bangladesh</p>
+      </div>
+    `
+  })
+    .then((res) => console.log("Successfully sent", res))
+    .catch((err) => console.log("Failed ", err))
+}
+
 const run = async () => {
   try {
     await client.connect();
@@ -42,7 +58,9 @@ const run = async () => {
     const membersCollection = client.db("gameOfRL").collection("members");
     const tasksCollection = client.db("gameOfRL").collection("tasks");
     const teamsCollection = client.db("gameOfRL").collection("teams")
-    const activeTeam = client.db('gameOfRL').collection("activeTeam")
+    const adminNotifications = client.db("gameOfRLNotifications").collection("adminNotifications")
+    const memberNotifications = client.db("gameOfRLNotifications").collection("memberNotifications")
+
 
     app.get("/member-login/:id", async (req, res) => {
       const memberId = req.params.id;
@@ -60,12 +78,19 @@ const run = async () => {
       const newMember = req.body;
 
       const memberId = newMember.id;
+      const email = newMember.memberEmail;
       const filter = { id: memberId };
+      const query = { memberEmail: email }
       const member = await membersCollection.findOne(filter);
       if (member) {
-        return res.send({ message: "id already used" });
+        return res.send({ message: "Id already used" });
+      }
+      const emailOwner = await membersCollection.findOne(query);
+      if (emailOwner) {
+        return res.send({ message: "Email is already used" })
       }
       const result = await membersCollection.insertOne(newMember);
+      sendMailToMember(newMember);
       res.send(result);
     });
     // creating new team in db
@@ -113,9 +138,6 @@ const run = async () => {
       const result = await tasksCollection.updateOne(filter, data, options);
       res.send(result);
     });
-<<<<<<< HEAD
-    // get all task (Nabin>>>)
-=======
     // add review
     app.put("/add-review/:memberId", async (req, res) => {
       const memberId = req.params.memberId;
@@ -132,26 +154,19 @@ const run = async () => {
       res.send(result);
     });
     // get all task
->>>>>>> f222873d85c8053520c578013b8b5c8d33589140
-    app.get("/task", async (req, res) => {
-      const query = {};
+    app.get("/task/:teamName", async (req, res) => {
+      const teamName = req.params.teamName;
+
+      const query = {
+        teamName: teamName,
+      };
       const cursor = tasksCollection.find(query);
       const tasks = await cursor.toArray();
       res.send(tasks);
     });
-<<<<<<< HEAD
-    // get task of a member (Nabin>>>)
-    app.get("/task/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: ObjectId(id) };
-      const task = await tasksCollection.findOne(query);
-      res.send(task);
-    });
-=======
     // get task of a member
     app.get("/taskMember", async (req, res) => {
       const id = req.query.id;
->>>>>>> f222873d85c8053520c578013b8b5c8d33589140
 
       const query = { memberId: id };
       const cursor = tasksCollection.find(query);
@@ -171,12 +186,33 @@ const run = async () => {
 
     app.get("/members", async (req, res) => {
       const email = req.query.email;
+      const teamName = req.query.teamName;
 
-      const query = { adminEmail: email };
+      const query = {
+        adminEmail: email,
+        teamName: teamName,
+      };
       const cursor = membersCollection.find(query);
+      const members = await cursor.toArray();
+
+      res.send(members);
+    });
+    // getting todays task based on new date
+    app.get("/today-tasks", async (req, res) => {
+      const taskDate = req.query.todaysDate;
+      const teamName = req.query.teamName;
+
+      const query = {
+        taskDate: taskDate,
+        teamName: teamName,
+      };
+      const cursor = tasksCollection.find(query);
       const result = await cursor.toArray();
+
       res.send(result);
     });
+
+
     // delete a member (shuvo).......
     app.delete("/member/:id", async (req, res) => {
       const id = req.params.id;
@@ -190,8 +226,10 @@ const run = async () => {
       const result = await tasksCollection.insertOne(task);
       res.send(result);
     });
-    
-    
+
+
+
+
 
     app.put("/task-member/:id", async (req, res) => {
       const id = req.params.id;
