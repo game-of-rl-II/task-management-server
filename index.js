@@ -36,7 +36,7 @@ function sendMailToMember(newMember) {
     html: `
       <div>
          <h1 > Hello ${name}, </h1>
-         <p>Congratulation!</p>
+         <p style={{fontSize: "20px" , color: "#F83D06"}}>Congratulation!</p>
          <p>You are selected as a member of our team ${teamName}.</p>
          <p> Your member Id is ${id} and Password is ${password}.</p>
   
