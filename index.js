@@ -1,19 +1,4 @@
-// const express = require("express");
-// const cors = require("cors");
 
-// require("dotenv").config();
-// const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-// const port = process.env.PORT || 5000;
-
-// const app = express();
-// const corsConfig = {
-//   origin: true,
-//   credentials: true,
-// };
-
-// app.use(cors(corsConfig));
-// app.use(express.json());
-// app.options("*", cors(corsConfig));
 
 const express = require("express");
 const cors = require("cors");
@@ -21,6 +6,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
+var nodemailer = require('nodemailer');
 
 // middleware
 app.use(cors());
@@ -34,6 +20,36 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
+const transporter = nodemailer.createTransport({
+  service: 'SendinBlue',
+  auth: {
+    user: process.env.SENDER_EMAIL,
+    pass: process.env.SMTP_PASSWORD
+  }
+});
+function sendMailToMember(newMember) {
+  const { adminEmail, name, id, password, memberEmail } = newMember;
+  transporter.sendMail({
+    from: adminEmail,
+    to: memberEmail,
+    subject: `Your member id is ${id} and password is ${password}.`,
+    text: `Your member id is ${id} and password is ${password}.`,
+    html: `
+      <div>
+         <h1> Hello ${name}, </h1>
+         <p>Congratulation!</p>
+         <p>You are selected as a member of our team.</p>
+         <p> Your member Id is ${id} and Password is ${password}.</p>
+  
+         <p>Hathazari, Chittagong.</p>
+         <p>Bangladesh</p>
+      </div>
+    `
+  })
+    .then((res) => console.log("Successfully sent", res))
+    .catch((err) => console.log("Failed ", err))
+}
+
 const run = async () => {
   try {
     await client.connect();
@@ -42,7 +58,7 @@ const run = async () => {
     const membersCollection = client.db("gameOfRL").collection("members");
     const tasksCollection = client.db("gameOfRL").collection("tasks");
     const teamsCollection = client.db("gameOfRL").collection("teams")
-    const activeTeam = client.db('gameOfRL').collection("activeTeam")
+    
 
     app.get("/member-login/:id", async (req, res) => {
       const memberId = req.params.id;
@@ -60,12 +76,19 @@ const run = async () => {
       const newMember = req.body;
 
       const memberId = newMember.id;
+      const email = newMember.memberEmail;
       const filter = { id: memberId };
+      const query = { memberEmail: email }
       const member = await membersCollection.findOne(filter);
       if (member) {
-        return res.send({ message: "id already used" });
+        return res.send({ message: "Id already used" });
+      }
+      const emailOwner = await membersCollection.findOne(query);
+      if (emailOwner) {
+        return res.send({ message: "Email is already used" })
       }
       const result = await membersCollection.insertOne(newMember);
+      sendMailToMember(newMember);
       res.send(result);
     });
     // creating new team in db
