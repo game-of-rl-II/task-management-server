@@ -4,7 +4,7 @@ const cors = require("cors");
 require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 5000;
-var nodemailer = require('nodemailer');
+var nodemailer = require('nodemailer'); // added by arif islam
 
 const app = express();
 const corsConfig = {
@@ -24,7 +24,7 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
-
+//******** added by arif islam *************
 const transporter = nodemailer.createTransport({
   service: 'SendinBlue', 
   auth: {
@@ -56,7 +56,7 @@ function sendMailToMember(newMember){
         .then((res) => console.log("Successfully sent", res))
         .catch((err) => console.log("Failed ", err))
 }
-
+//================end====================
 const run = async () => {
   try {
     await client.connect();
@@ -81,7 +81,7 @@ const run = async () => {
     app.post('/add-new-member', async (req, res) => {
       const newMember = req.body;
       const result = await membersCollection.insertOne(newMember)
-      sendMailToMember(newMember);
+      sendMailToMember(newMember); // added by arif islam
       res.send(result)
     })
     app.post('/new-admin', async (req, res) => {
