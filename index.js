@@ -64,8 +64,16 @@ const run = async () => {
 
     // sending password reset request to admin 
     app.post("/notification-admin", async (req, res) => {
-      const task = req.body;
-      const result = await adminNotifications.insertOne(task);
+      const notification = req.body;
+      const result = await adminNotifications.insertOne(notification);
+      res.send(result);
+    });
+
+    app.get("/team-one/:teamName", async (req, res) => {
+      const tn = req.params.teamName;
+      const query = { teamName: tn }
+
+      const result = await teamsCollection.findOne(query);
       res.send(result);
     });
 
