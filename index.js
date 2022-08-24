@@ -58,7 +58,9 @@ const run = async () => {
     const membersCollection = client.db("gameOfRL").collection("members");
     const tasksCollection = client.db("gameOfRL").collection("tasks");
     const teamsCollection = client.db("gameOfRL").collection("teams")
-    
+    const adminNotifications = client.db("gameOfRLNotifications").collection("adminNotifications")
+    const memberNotifications = client.db("gameOfRLNotifications").collection("memberNotifications")
+
 
     app.get("/member-login/:id", async (req, res) => {
       const memberId = req.params.id;
