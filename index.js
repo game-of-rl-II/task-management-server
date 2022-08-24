@@ -1,21 +1,32 @@
+// const express = require("express");
+// const cors = require("cors");
+
+// require("dotenv").config();
+// const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+// const port = process.env.PORT || 5000;
+
+// const app = express();
+// const corsConfig = {
+//   origin: true,
+//   credentials: true,
+// };
+
+// app.use(cors(corsConfig));
+// app.use(express.json());
+// app.options("*", cors(corsConfig));
+
 const express = require("express");
 const cors = require("cors");
-
-require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+require("dotenv").config();
+const app = express();
 const port = process.env.PORT || 5000;
 
-const app = express();
-const corsConfig = {
-  origin: true,
-  credentials: true,
-};
-
-app.use(cors(corsConfig));
+// middleware
+app.use(cors());
 app.use(express.json());
-app.options("*", cors(corsConfig));
 
-const uri = `mongodb+srv://${process.env.DB_Name}:${process.env.DB_KEY}@cluster0.u6i9ya9.mongodb.net/?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://gamerl:LmwYybhisaurSQmq@cluster0.u6i9ya9.mongodb.net/?retryWrites=true&w=majority`;
 
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
@@ -30,6 +41,8 @@ const run = async () => {
     const adminsCollection = client.db("gameOfRL").collection("admins");
     const membersCollection = client.db("gameOfRL").collection("members");
     const tasksCollection = client.db("gameOfRL").collection("tasks");
+    const teamsCollection = client.db("gameOfRL").collection("teams");
+    const activeTeam = client.db("gameOfRL").collection("activeTeam");
 
     app.get("/member-login/:id", async (req, res) => {
       const memberId = req.params.id;
@@ -45,9 +58,41 @@ const run = async () => {
 
     app.post("/add-new-member", async (req, res) => {
       const newMember = req.body;
+
+      const memberId = newMember.id;
+      const filter = { id: memberId };
+      const member = await membersCollection.findOne(filter);
+      if (member) {
+        return res.send({ message: "id already used" });
+      }
       const result = await membersCollection.insertOne(newMember);
       res.send(result);
     });
+    // creating new team in db
+    app.post("/create-team", async (req, res) => {
+      const newTeam = req.body;
+      const teamName = newTeam.teamName;
+      const filter = { teamName: teamName };
+      const team = await teamsCollection.findOne(filter);
+      if (team) {
+        return res.send({ message: "You already have a team with that name. Please try  a new name" });
+      }
+      const result = await teamsCollection.insertOne(newTeam);
+      res.send(result);
+    });
+
+    app.get("/random-id-check/:id", async (req, res) => {
+      const memberId = req.params.id;
+
+      const filter = { id: memberId };
+
+      const searchedId = await membersCollection.findOne(filter);
+      if (searchedId) {
+        return res.send({ message: "exist" });
+      }
+      res.send({ memberId });
+    });
+
     app.post("/new-admin", async (req, res) => {
       const newAdmin = req.body;
       const result = await adminsCollection.insertOne(newAdmin);
@@ -69,7 +114,6 @@ const run = async () => {
     // add review
     app.put("/add-review/:memberId", async (req, res) => {
       const memberId = req.params.memberId;
-      console.log(memberId);
       const body = req.body;
       const filter = { memberId: memberId };
       const options = { upsert: true };
@@ -83,8 +127,12 @@ const run = async () => {
       res.send(result);
     });
     // get all task
-    app.get("/task", async (req, res) => {
-      const query = {};
+    app.get("/task/:teamName", async (req, res) => {
+      const teamName = req.params.teamName;
+
+      const query = {
+        teamName: teamName,
+      };
       const cursor = tasksCollection.find(query);
       const tasks = await cursor.toArray();
       res.send(tasks);
@@ -98,17 +146,44 @@ const run = async () => {
       const tasks = await cursor.toArray();
       res.send(tasks);
     });
-
+    // get all teamsCollection
+    app.get("/teams/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { owner: email };
+      const cursor = teamsCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
     // get all member
 
     app.get("/members", async (req, res) => {
       const email = req.query.email;
+      const teamName = req.query.teamName;
 
-      const query = { adminEmail: email };
+      const query = {
+        adminEmail: email,
+        teamName: teamName,
+      };
       const cursor = membersCollection.find(query);
+      const members = await cursor.toArray();
+
+      res.send(members);
+    });
+    // getting todays task based on new date
+    app.get("/today-tasks", async (req, res) => {
+      const taskDate = req.query.todaysDate;
+      const teamName = req.query.teamName;
+
+      const query = {
+        taskDate: taskDate,
+        teamName: teamName,
+      };
+      const cursor = tasksCollection.find(query);
       const result = await cursor.toArray();
+
       res.send(result);
     });
+
     // delete a member (shuvo).......
     app.delete("/member/:id", async (req, res) => {
       const id = req.params.id;
