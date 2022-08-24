@@ -1,21 +1,32 @@
+// const express = require("express");
+// const cors = require("cors");
+
+// require("dotenv").config();
+// const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+// const port = process.env.PORT || 5000;
+
+// const app = express();
+// const corsConfig = {
+//   origin: true,
+//   credentials: true,
+// };
+
+// app.use(cors(corsConfig));
+// app.use(express.json());
+// app.options("*", cors(corsConfig));
+
 const express = require("express");
 const cors = require("cors");
-
-require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+require("dotenv").config();
+const app = express();
 const port = process.env.PORT || 5000;
 
-const app = express();
-const corsConfig = {
-  origin: true,
-  credentials: true,
-};
-
-app.use(cors(corsConfig));
+// middleware
+app.use(cors());
 app.use(express.json());
-app.options("*", cors(corsConfig));
 
-const uri = `mongodb+srv://${process.env.DB_Name}:${process.env.DB_KEY}@cluster0.u6i9ya9.mongodb.net/?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://gamerl:LmwYybhisaurSQmq@cluster0.u6i9ya9.mongodb.net/?retryWrites=true&w=majority`;
 
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
@@ -27,16 +38,69 @@ const run = async () => {
   try {
     await client.connect();
     console.log("db connected");
-    // These all codes done by faridul haque for manage attendance page.
-    const faridCollection = client.db("Farid").collection("first");
-    const taskCollection = client.db("Arif").collection("memberTasks");
-    const assignTaskCollection = client.db("Shuvo").collection("memberTask");
-    app.get("/manage-attendance", async (req, res) => {
-      const filter = {};
-      const cursor = faridCollection.find(filter);
-      const result = await cursor.toArray();
+    const adminsCollection = client.db("gameOfRL").collection("admins");
+    const membersCollection = client.db("gameOfRL").collection("members");
+    const tasksCollection = client.db("gameOfRL").collection("tasks");
+    const teamsCollection = client.db("gameOfRL").collection("teams")
+    const activeTeam = client.db('gameOfRL').collection("activeTeam")
+
+    app.get("/member-login/:id", async (req, res) => {
+      const memberId = req.params.id;
+      const query = { id: memberId };
+      const member = await membersCollection.findOne(query);
+
+      if (member) {
+        return res.send(member);
+      }
+
+      return res.send({ message: "user not found" });
+    });
+
+    app.post("/add-new-member", async (req, res) => {
+      const newMember = req.body;
+
+      const memberId = newMember.id;
+      const filter = { id: memberId };
+      const member = await membersCollection.findOne(filter);
+      if (member) {
+        return res.send({ message: "id already used" });
+      }
+      const result = await membersCollection.insertOne(newMember);
       res.send(result);
     });
+    // creating new team in db
+    app.post("/create-team", async (req, res) => {
+      const newTeam = req.body;
+      const teamName = newTeam.teamName;
+      const filter = { teamName: teamName }
+      const team = await teamsCollection.findOne(filter);
+      if (team) {
+        return res.send({ message: "You already have a team with that name. Please try  a new name" })
+      }
+      const result = await teamsCollection.insertOne(newTeam);
+      res.send(result);
+    });
+
+
+    app.get("/random-id-check/:id", async (req, res) => {
+
+      const memberId = req.params.id;
+
+      const filter = { id: memberId };
+
+      const searchedId = await membersCollection.findOne(filter);
+      if (searchedId) {
+        return res.send({ message: "exist" });
+      }
+      res.send({ memberId })
+    });
+
+    app.post("/new-admin", async (req, res) => {
+      const newAdmin = req.body;
+      const result = await adminsCollection.insertOne(newAdmin);
+      res.send(result);
+    });
+
     app.put("/manage-attendance/present/:id", async (req, res) => {
       const id = req.params.id;
       const filter = { _id: ObjectId(id) };
@@ -46,38 +110,92 @@ const run = async () => {
           presentStatus: true,
         },
       };
-      const result = await faridCollection.updateOne(filter, data, options);
+      const result = await tasksCollection.updateOne(filter, data, options);
+      res.send(result);
+    });
+    // add review
+    app.put("/add-review/:memberId", async (req, res) => {
+      const memberId = req.params.memberId;
+      const body = req.body;
+      const filter = { memberId: memberId };
+      const options = { upsert: true };
+      const data = {
+        $set: {
+          rating: body.rating,
+          comment: body.description,
+        },
+      };
+      const result = await membersCollection.updateOne(filter, data, options);
       res.send(result);
     });
     // get all task
     app.get("/task", async (req, res) => {
       const query = {};
-      const cursor = taskCollection.find(query);
+      const cursor = tasksCollection.find(query);
       const tasks = await cursor.toArray();
       res.send(tasks);
     });
     // get task of a member
-    app.get("/task/:id", async (req, res) => {
+    app.get("/taskMember", async (req, res) => {
+      const id = req.query.id;
+
+      const query = { memberId: id };
+      const cursor = tasksCollection.find(query);
+      const tasks = await cursor.toArray();
+      res.send(tasks);
+    });
+    // get all teamsCollection
+    app.get('/teams/:email', async (req, res) => {
+      const email = req.params.email;
+      const query = { owner: email };
+      const cursor = teamsCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+
+    })
+    // get all member
+
+    app.get("/members", async (req, res) => {
+      const email = req.query.email;
+      const teamName = req.query.teamName;
+
+      const query = {
+        adminEmail: email,
+        teamName: teamName,
+      };
+      const cursor = membersCollection.find(query);
+      const members = await cursor.toArray();
+      
+      res.send(members);
+    });
+    // delete a member (shuvo).......
+    app.delete("/member/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
-      const task = await taskCollection.findOne(query);
-      res.send(task);
+      const result = await membersCollection.deleteOne(query);
+      res.send(result);
     });
 
-    // delete a member (shuvo).......
-    app.delete("/task/:id", async(req, res) =>{
-      const id = req.params.id;
-      const query = {_id: ObjectId(id)};
-      const result = await taskCollection.deleteOne(query);
+    app.post("/assign-task", async (req, res) => {
+      const task = req.body;
+      const result = await tasksCollection.insertOne(task);
       res.send(result);
-  });
-  // post assign-task (shuvo)...........
-  app.post("/assign-task", async (req, res) => {
-    const task = req.body;
-    const result = await assignTaskCollection.insertOne(task);
-    res.send(result);
-  });
-    // codes for manageAttendance page by faridul haque done here
+    });
+
+
+
+    app.put("/task-member/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const data = {
+        $set: {
+          taskCompletion: true,
+        },
+      };
+      const result = await tasksCollection.updateOne(query, data, options);
+      res.send(result);
+    });
   } finally {
   }
 };
