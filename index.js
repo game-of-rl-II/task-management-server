@@ -59,7 +59,9 @@ const run = async () => {
     const tasksCollection = client.db("gameOfRL").collection("tasks");
     const teamsCollection = client.db("gameOfRL").collection("teams")
     const adminNotifications = client.db("gameOfRLNotifications").collection("adminNotifications")
+    const adminNotificationsArchive = client.db("gameOfRLNotifications").collection("adminNotificationsArchive")
     const memberNotifications = client.db("gameOfRLNotifications").collection("memberNotifications")
+    const memberNotificationsArchive = client.db("gameOfRLNotifications").collection("memberNotificationsArchive")
 
 
     // sending password reset request to admin 
@@ -68,6 +70,28 @@ const run = async () => {
       const result = await adminNotifications.insertOne(notification);
       res.send(result);
     });
+    app.post("/notification-archive-admin", async (req, res) => {
+      const notification = req.body;
+      const result = await adminNotificationsArchive.insertOne(notification);
+      res.send(result);
+    });
+
+    app.get('/notification-admin/:email', async (req, res) => {
+      const email = req.params.email;
+      const filter = { adminEmail: email };
+
+      const cursor = adminNotifications.find(filter)
+      const notification = await cursor.toArray();
+      res.send(notification);
+    })
+
+    app.delete("/notification-clear/:email", async (req, res)=>{
+      const email = req.params.email;
+      const filter = { adminEmail: email };
+      const result = await adminNotifications.deleteMany(filter)
+      res.send(result)
+    })
+
 
     // app.get("/team-one/:teamName", async (req, res) => {
     //   const tn = req.params.teamName;
