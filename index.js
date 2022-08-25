@@ -69,13 +69,13 @@ const run = async () => {
       res.send(result);
     });
 
-    app.get("/team-one/:teamName", async (req, res) => {
-      const tn = req.params.teamName;
-      const query = { teamName: tn }
+    // app.get("/team-one/:teamName", async (req, res) => {
+    //   const tn = req.params.teamName;
+    //   const query = { teamName: tn }
 
-      const result = await teamsCollection.findOne(query);
-      res.send(result);
-    });
+    //   const result = await teamsCollection.findOne(query);
+    //   res.send(result);
+    // });
 
     app.get("/member-login/:id", async (req, res) => {
       const memberId = req.params.id;
