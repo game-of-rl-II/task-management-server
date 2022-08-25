@@ -41,8 +41,8 @@ const run = async () => {
     const adminsCollection = client.db("gameOfRL").collection("admins");
     const membersCollection = client.db("gameOfRL").collection("members");
     const tasksCollection = client.db("gameOfRL").collection("tasks");
-    const teamsCollection = client.db("gameOfRL").collection("teams")
-    const activeTeam = client.db('gameOfRL').collection("activeTeam")
+    const teamsCollection = client.db("gameOfRL").collection("teams");
+    const activeTeam = client.db("gameOfRL").collection("activeTeam");
 
     app.get("/member-login/:id", async (req, res) => {
       const memberId = req.params.id;
@@ -72,18 +72,19 @@ const run = async () => {
     app.post("/create-team", async (req, res) => {
       const newTeam = req.body;
       const teamName = newTeam.teamName;
-      const filter = { teamName: teamName }
+      const filter = { teamName: teamName };
       const team = await teamsCollection.findOne(filter);
       if (team) {
-        return res.send({ message: "You already have a team with that name. Please try  a new name" })
+        return res.send({
+          message:
+            "You already have a team with that name. Please try  a new name",
+        });
       }
       const result = await teamsCollection.insertOne(newTeam);
       res.send(result);
     });
 
-
     app.get("/random-id-check/:id", async (req, res) => {
-
       const memberId = req.params.id;
 
       const filter = { id: memberId };
@@ -92,7 +93,7 @@ const run = async () => {
       if (searchedId) {
         return res.send({ message: "exist" });
       }
-      res.send({ memberId })
+      res.send({ memberId });
     });
 
     app.post("/new-admin", async (req, res) => {
@@ -113,9 +114,6 @@ const run = async () => {
       const result = await tasksCollection.updateOne(filter, data, options);
       res.send(result);
     });
-<<<<<<< HEAD
-    // get all task (Nabin>>>)
-=======
     // add review
     app.put("/add-review/:memberId", async (req, res) => {
       const memberId = req.params.memberId;
@@ -132,26 +130,19 @@ const run = async () => {
       res.send(result);
     });
     // get all task
->>>>>>> f222873d85c8053520c578013b8b5c8d33589140
-    app.get("/task", async (req, res) => {
-      const query = {};
+    app.get("/task/:teamName", async (req, res) => {
+      const teamName = req.params.teamName;
+
+      const query = {
+        teamName: teamName,
+      };
       const cursor = tasksCollection.find(query);
       const tasks = await cursor.toArray();
       res.send(tasks);
     });
-<<<<<<< HEAD
-    // get task of a member (Nabin>>>)
-    app.get("/task/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: ObjectId(id) };
-      const task = await tasksCollection.findOne(query);
-      res.send(task);
-    });
-=======
     // get task of a member
     app.get("/taskMember", async (req, res) => {
       const id = req.query.id;
->>>>>>> f222873d85c8053520c578013b8b5c8d33589140
 
       const query = { memberId: id };
       const cursor = tasksCollection.find(query);
@@ -159,24 +150,43 @@ const run = async () => {
       res.send(tasks);
     });
     // get all teamsCollection
-    app.get('/teams/:email', async (req, res) => {
+    app.get("/teams/:email", async (req, res) => {
       const email = req.params.email;
       const query = { owner: email };
       const cursor = teamsCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
-
-    })
+    });
     // get all member
 
     app.get("/members", async (req, res) => {
       const email = req.query.email;
+      const teamName = req.query.teamName;
 
-      const query = { adminEmail: email };
+      const query = {
+        adminEmail: email,
+        teamName: teamName,
+      };
       const cursor = membersCollection.find(query);
+      const members = await cursor.toArray();
+
+      res.send(members);
+    });
+    // getting todays task based on new date
+    app.get("/today-tasks", async (req, res) => {
+      const taskDate = req.query.todaysDate;
+      const teamName = req.query.teamName;
+
+      const query = {
+        taskDate: taskDate,
+        teamName: teamName,
+      };
+      const cursor = tasksCollection.find(query);
       const result = await cursor.toArray();
+
       res.send(result);
     });
+
     // delete a member (shuvo).......
     app.delete("/member/:id", async (req, res) => {
       const id = req.params.id;
@@ -190,8 +200,6 @@ const run = async () => {
       const result = await tasksCollection.insertOne(task);
       res.send(result);
     });
-    
-    
 
     app.put("/task-member/:id", async (req, res) => {
       const id = req.params.id;
