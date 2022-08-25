@@ -115,7 +115,7 @@ const run = async () => {
       const filter = { teamName: teamName }
       const team = await teamsCollection.findOne(filter);
       if (team) {
-        return res.send({ message: "You already have a team with that name. Please try  a new name" })
+        return res.send({ message: "The name is already taken! please try a new name!" })
       }
       const result = await teamsCollection.insertOne(newTeam);
       res.send(result);
