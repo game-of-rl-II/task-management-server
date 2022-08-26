@@ -177,6 +177,11 @@ const run = async () => {
       const memberId = req.params.memberId;
       const body = req.body;
       const filter = { memberId: memberId };
+      const member= await membersCollection.findOne(filter);
+      if(member === null){
+      return res.send({ message: 'User did not match' })
+      
+      }
       const options = { upsert: true };
       const data = {
         $set: {
@@ -184,8 +189,11 @@ const run = async () => {
           comment: body.description,
         },
       };
+      
       const result = await membersCollection.updateOne(filter, data, options);
-      res.send(result);
+      res.send(result)
+
+
     });
     // get all task
     app.get("/task/:teamName", async (req, res) => {
