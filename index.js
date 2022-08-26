@@ -1,12 +1,10 @@
-
-
 const express = require("express");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
-var nodemailer = require('nodemailer');
+var nodemailer = require("nodemailer");
 
 // middleware
 app.use(cors());
@@ -21,20 +19,21 @@ const client = new MongoClient(uri, {
 });
 
 const transporter = nodemailer.createTransport({
-  service: 'SendinBlue',
+  service: "SendinBlue",
   auth: {
     user: process.env.SENDER_EMAIL,
-    pass: process.env.SMTP_PASSWORD
-  }
+    pass: process.env.SMTP_PASSWORD,
+  },
 });
 function sendMailToMember(newMember) {
   const { adminEmail, name, id, password, memberEmail } = newMember;
-  transporter.sendMail({
-    from: adminEmail,
-    to: memberEmail,
-    subject: `Your member id is ${id} and password is ${password}.`,
-    text: `Your member id is ${id} and password is ${password}.`,
-    html: `
+  transporter
+    .sendMail({
+      from: adminEmail,
+      to: memberEmail,
+      subject: `Your member id is ${id} and password is ${password}.`,
+      text: `Your member id is ${id} and password is ${password}.`,
+      html: `
       <div>
          <h1> Hello ${name}, </h1>
          <p>Congratulation!</p>
@@ -44,10 +43,10 @@ function sendMailToMember(newMember) {
          <p>Hathazari, Chittagong.</p>
          <p>Bangladesh</p>
       </div>
-    `
-  })
+    `,
+    })
     .then((res) => console.log("Successfully sent", res))
-    .catch((err) => console.log("Failed ", err))
+    .catch((err) => console.log("Failed ", err));
 }
 
 const run = async () => {
@@ -57,14 +56,13 @@ const run = async () => {
     const adminsCollection = client.db("gameOfRL").collection("admins");
     const membersCollection = client.db("gameOfRL").collection("members");
     const tasksCollection = client.db("gameOfRL").collection("tasks");
-    const teamsCollection = client.db("gameOfRL").collection("teams")
-    const adminNotifications = client.db("gameOfRLNotifications").collection("adminNotifications")
-    const adminNotificationsArchive = client.db("gameOfRLNotifications").collection("adminNotificationsArchive")
-    const memberNotifications = client.db("gameOfRLNotifications").collection("memberNotifications")
-    const memberNotificationsArchive = client.db("gameOfRLNotifications").collection("memberNotificationsArchive")
+    const teamsCollection = client.db("gameOfRL").collection("teams");
+    const adminNotifications = client.db("gameOfRLNotifications").collection("adminNotifications");
+    const adminNotificationsArchive = client.db("gameOfRLNotifications").collection("adminNotificationsArchive");
+    const memberNotifications = client.db("gameOfRLNotifications").collection("memberNotifications");
+    const memberNotificationsArchive = client.db("gameOfRLNotifications").collection("memberNotificationsArchive");
 
-
-    // sending password reset request to admin 
+    // sending password reset request to admin
     app.post("/notification-admin", async (req, res) => {
       const notification = req.body;
       const result = await adminNotifications.insertOne(notification);
@@ -76,22 +74,21 @@ const run = async () => {
       res.send(result);
     });
 
-    app.get('/notification-admin/:email', async (req, res) => {
+    app.get("/notification-admin/:email", async (req, res) => {
       const email = req.params.email;
       const filter = { adminEmail: email };
 
-      const cursor = adminNotifications.find(filter)
+      const cursor = adminNotifications.find(filter);
       const notification = await cursor.toArray();
       res.send(notification);
-    })
+    });
 
-    app.delete("/notification-clear/:email", async (req, res)=>{
+    app.delete("/notification-clear/:email", async (req, res) => {
       const email = req.params.email;
       const filter = { adminEmail: email };
-      const result = await adminNotifications.deleteMany(filter)
-      res.send(result)
-    })
-
+      const result = await adminNotifications.deleteMany(filter);
+      res.send(result);
+    });
 
     // app.get("/team-one/:teamName", async (req, res) => {
     //   const tn = req.params.teamName;
@@ -119,14 +116,14 @@ const run = async () => {
       const memberId = newMember.id;
       const email = newMember.memberEmail;
       const filter = { id: memberId };
-      const query = { memberEmail: email }
+      const query = { memberEmail: email };
       const member = await membersCollection.findOne(filter);
       if (member) {
         return res.send({ message: "Id already used" });
       }
       const emailOwner = await membersCollection.findOne(query);
       if (emailOwner) {
-        return res.send({ message: "Email is already used" })
+        return res.send({ message: "Email is already used" });
       }
       const result = await membersCollection.insertOne(newMember);
       sendMailToMember(newMember);
@@ -136,18 +133,16 @@ const run = async () => {
     app.post("/create-team", async (req, res) => {
       const newTeam = req.body;
       const teamName = newTeam.teamName;
-      const filter = { teamName: teamName }
+      const filter = { teamName: teamName };
       const team = await teamsCollection.findOne(filter);
       if (team) {
-        return res.send({ message: "The team name is already taken! please try a new name!" })
+        return res.send({ message: "The team name is already taken! please try a new name!" });
       }
       const result = await teamsCollection.insertOne(newTeam);
       res.send(result);
     });
 
-
     app.get("/random-id-check/:id", async (req, res) => {
-
       const memberId = req.params.id;
 
       const filter = { id: memberId };
@@ -156,7 +151,7 @@ const run = async () => {
       if (searchedId) {
         return res.send({ message: "exist" });
       }
-      res.send({ memberId })
+      res.send({ memberId });
     });
 
     app.post("/new-admin", async (req, res) => {
@@ -213,14 +208,13 @@ const run = async () => {
       res.send(tasks);
     });
     // get all teamsCollection
-    app.get('/teams/:email', async (req, res) => {
+    app.get("/teams/:email", async (req, res) => {
       const email = req.params.email;
       const query = { owner: email };
       const cursor = teamsCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
-
-    })
+    });
     // get all member
 
     app.get("/members", async (req, res) => {
@@ -251,7 +245,6 @@ const run = async () => {
       res.send(result);
     });
 
-
     // delete a member (shuvo).......
     app.delete("/member/:id", async (req, res) => {
       const id = req.params.id;
@@ -266,10 +259,6 @@ const run = async () => {
       res.send(result);
     });
 
-
-
-
-
     app.put("/task-member/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
@@ -280,6 +269,28 @@ const run = async () => {
         },
       };
       const result = await tasksCollection.updateOne(query, data, options);
+      res.send(result);
+    });
+    // Update profile admin
+    app.put("/update-admin/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const body = req.body;
+      console.log(body);
+      const data = {
+        $set: {
+          displayName: body.name,
+          phone: body.number,
+        },
+      };
+      const option = { upsert: true };
+      const result = await adminsCollection.updateOne(query, data, option);
+      res.send(result);
+    });
+    app.get("/admin-profile/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const result = await adminsCollection.findOne(query);
       res.send(result);
     });
   } finally {
