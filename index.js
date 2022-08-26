@@ -176,11 +176,10 @@ const run = async () => {
     app.put("/add-review/:memberId", async (req, res) => {
       const memberId = req.params.memberId;
       const body = req.body;
-      const filter = { memberId: memberId };
-      const member= await membersCollection.findOne(filter);
+      const filter = { id: memberId };
+      const member = await membersCollection.findOne(filter)
       if(member === null){
-      return res.send({ message: 'User did not match' })
-      
+        return res.send({message:'No member found! Please check the id'})
       }
       const options = { upsert: true };
       const data = {
@@ -189,7 +188,7 @@ const run = async () => {
           comment: body.description,
         },
       };
-      
+
       const result = await membersCollection.updateOne(filter, data, options);
       res.send(result)
 
