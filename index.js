@@ -62,7 +62,7 @@ const run = async () => {
     const memberNotifications = client.db("gameOfRLNotifications").collection("memberNotifications");
     const memberNotificationsArchive = client.db("gameOfRLNotifications").collection("memberNotificationsArchive");
 
-    // sending password reset request to admin
+    // all notifications related to admins
     app.post("/notification-admin", async (req, res) => {
       const notification = req.body;
       const result = await adminNotifications.insertOne(notification);
@@ -89,6 +89,37 @@ const run = async () => {
       const result = await adminNotifications.deleteMany(filter);
       res.send(result);
     });
+    // all notification codes related admins ended here
+    // --------------------------------------------------
+    // all notification related to the members started here
+    app.post("/notification-member", async (req, res) => {
+      const notification = req.body;
+      const result = await memberNotifications.insertOne(notification);
+      res.send(result);
+    });
+    app.post("/notification-archive-member", async (req, res) => {
+      const notification = req.body;
+      const result = await memberNotificationsArchive.insertOne(notification);
+      res.send(result);
+    });
+
+    app.get("/notification-member/:id", async (req, res) => {
+      const receivedId = req.params.id;
+
+      const filter = { memberId: receivedId };
+
+      const cursor = memberNotifications.find(filter);
+      const notification = await cursor.toArray();
+      res.send(notification);
+    });
+    app.delete("/notification-clear-member/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { memberId: id };
+      const result = await memberNotifications.deleteMany(filter);
+      res.send(result);
+    });
+
+    // all notification related to the members ended here
 
     // app.get("/team-one/:teamName", async (req, res) => {
     //   const tn = req.params.teamName;
@@ -178,8 +209,8 @@ const run = async () => {
       const body = req.body;
       const filter = { id: memberId };
       const member = await membersCollection.findOne(filter)
-      if(member === null){
-        return res.send({message:'No member found! Please check the id'})
+      if (member === null) {
+        return res.send({ message: 'No member found! Please check the id' })
       }
       const options = { upsert: true };
       const data = {
