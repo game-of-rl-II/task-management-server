@@ -56,6 +56,7 @@ const run = async () => {
     const adminsCollection = client.db("gameOfRL").collection("admins");
     const membersCollection = client.db("gameOfRL").collection("members");
     const tasksCollection = client.db("gameOfRL").collection("tasks");
+    const forwardedTasksCollection = client.db("gameOfRL").collection("forwardedTasks");
     const teamsCollection = client.db("gameOfRL").collection("teams");
     const adminNotifications = client.db("gameOfRLNotifications").collection("adminNotifications");
     const adminNotificationsArchive = client.db("gameOfRLNotifications").collection("adminNotificationsArchive");
@@ -121,13 +122,13 @@ const run = async () => {
 
     // all notification related to the members ended here
 
-    // app.get("/team-one/:teamName", async (req, res) => {
-    //   const tn = req.params.teamName;
-    //   const query = { teamName: tn }
-
-    //   const result = await teamsCollection.findOne(query);
-    //   res.send(result);
-    // });
+    app.get("/all-notification", async (req, res) => {
+      
+      const query = {}
+      const cursor = adminNotificationsArchive.find(query)
+      const result = await cursor.toArray()
+      res.send(result);
+    });
 
     app.get("/member-login/:id", async (req, res) => {
       const memberId = req.params.id;
