@@ -141,7 +141,7 @@ const run = async () => {
 
       return res.send({ message: "user not found" });
     });
-
+// add new member
     app.post("/add-new-member", async (req, res) => {
       const newMember = req.body;
 
