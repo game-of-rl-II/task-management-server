@@ -122,10 +122,29 @@ const run = async () => {
 
     // all notification related to the members ended here
 
-    app.get("/all-notification", async (req, res) => {
+    app.get("/all-notification/:finder", async (req, res) => {
+      const finder = req.params.finder;
       
-      const query = {}
-      const cursor = adminNotificationsArchive.find(query)
+      if (finder.includes('@')) {
+        const filter = {adminEmail: finder }
+        const cursor = adminNotificationsArchive.find(filter)
+        const result = await cursor.toArray()
+        res.send(result)
+
+      }
+      else {
+        const filter = { memberId: finder }
+        const cursor = memberNotificationsArchive.find(filter)
+        const result = await cursor.toArray()
+        res.send(result)
+      }
+    });
+
+
+    app.get("/forwarded-task/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = {email: email}
+      const cursor = forwardedTasksCollection.find(query)
       const result = await cursor.toArray()
       res.send(result);
     });
@@ -141,7 +160,7 @@ const run = async () => {
 
       return res.send({ message: "user not found" });
     });
-// add new member
+    // add new member
     app.post("/add-new-member", async (req, res) => {
       const newMember = req.body;
 
