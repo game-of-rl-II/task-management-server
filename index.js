@@ -124,9 +124,9 @@ const run = async () => {
 
     app.get("/all-notification/:finder", async (req, res) => {
       const finder = req.params.finder;
-      
+
       if (finder.includes('@')) {
-        const filter = {adminEmail: finder }
+        const filter = { adminEmail: finder }
         const cursor = adminNotificationsArchive.find(filter)
         const result = await cursor.toArray()
         res.send(result)
@@ -143,7 +143,7 @@ const run = async () => {
 
     app.get("/forwarded-task/:email", async (req, res) => {
       const email = req.params.email;
-      const query = {email: email}
+      const query = { email: email }
       const cursor = forwardedTasksCollection.find(query)
       const result = await cursor.toArray()
       res.send(result);
@@ -224,13 +224,18 @@ const run = async () => {
       res.send(result);
     });
     // add review
-    app.put("/add-review/:memberId", async (req, res) => {
-      const memberId = req.params.memberId;
+    app.put("/add-review", async (req, res) => {
+      const memberId = req.query.memberId;
+      const adminEmail = req.query.adminEmail
       const body = req.body;
-      const filter = { id: memberId };
+
+      const filter = {
+        id: memberId,
+        adminEmail: adminEmail
+      };
       const member = await membersCollection.findOne(filter)
       if (member === null) {
-        return res.send({ message: 'No member found! Please check the id' })
+        return res.send({ message: "The ID does not match any of your teammates" })
       }
       const options = { upsert: true };
       const data = {
@@ -311,6 +316,14 @@ const run = async () => {
       res.send(result);
     });
 
+    //remove uncompleted task after forwarding
+    app.delete("/forward-task/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const result = await tasksCollection.deleteOne(filter);
+      res.send(result)
+    })
+
     app.post("/assign-task", async (req, res) => {
       const task = req.body;
       const result = await tasksCollection.insertOne(task);
@@ -351,6 +364,22 @@ const run = async () => {
       const result = await adminsCollection.findOne(query);
       res.send(result);
     });
+
+    app.post('/forward-task-api', async (req, res) => {
+      const data = req.body;
+      const result = await forwardedTasksCollection.insertOne(data);
+      res.send(result);
+    })
+
+    app.delete('/delete-team/:teamName', async (req, res) => {
+      const teamName = req.params.teamName;
+      const filter = { teamName: teamName };
+      const deleteTeam = await teamsCollection.deleteOne(filter)
+      const deleteMembers = await membersCollection.deleteMany(filter)
+      // const deleteTasks = await tasksCollection.deleteMany(filter)
+      res.send({deleteTeam, deleteMembers})
+    })
+
   } finally {
   }
 };
