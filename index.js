@@ -124,28 +124,25 @@ const run = async () => {
 
     app.get("/all-notification/:finder", async (req, res) => {
       const finder = req.params.finder;
-      
-      if (finder.includes('@')) {
-        const filter = {adminEmail: finder }
-        const cursor = adminNotificationsArchive.find(filter)
-        const result = await cursor.toArray()
-        res.send(result)
 
-      }
-      else {
-        const filter = { memberId: finder }
-        const cursor = memberNotificationsArchive.find(filter)
-        const result = await cursor.toArray()
-        res.send(result)
+      if (finder.includes("@")) {
+        const filter = { adminEmail: finder };
+        const cursor = adminNotificationsArchive.find(filter);
+        const result = await cursor.toArray();
+        res.send(result);
+      } else {
+        const filter = { memberId: finder };
+        const cursor = memberNotificationsArchive.find(filter);
+        const result = await cursor.toArray();
+        res.send(result);
       }
     });
 
-
     app.get("/forwarded-task/:email", async (req, res) => {
       const email = req.params.email;
-      const query = {email: email}
-      const cursor = forwardedTasksCollection.find(query)
-      const result = await cursor.toArray()
+      const query = { email: email };
+      const cursor = forwardedTasksCollection.find(query);
+      const result = await cursor.toArray();
       res.send(result);
     });
 
@@ -228,9 +225,9 @@ const run = async () => {
       const memberId = req.params.memberId;
       const body = req.body;
       const filter = { id: memberId };
-      const member = await membersCollection.findOne(filter)
+      const member = await membersCollection.findOne(filter);
       if (member === null) {
-        return res.send({ message: 'No member found! Please check the id' })
+        return res.send({ message: "No member found! Please check the id" });
       }
       const options = { upsert: true };
       const data = {
@@ -241,9 +238,7 @@ const run = async () => {
       };
 
       const result = await membersCollection.updateOne(filter, data, options);
-      res.send(result)
-
-
+      res.send(result);
     });
     // get all task
     app.get("/task/:teamName", async (req, res) => {
@@ -349,6 +344,14 @@ const run = async () => {
       const email = req.params.email;
       const query = { email: email };
       const result = await adminsCollection.findOne(query);
+      res.send(result);
+    });
+
+    // task forword post by
+    app.post("/forwardedTasksCollection", async (req, res) => {
+      const taskForward = req.body;
+      console.log(taskForward);
+      const result = await forwardedTasksCollection.insertOne(taskForward);
       res.send(result);
     });
   } finally {
