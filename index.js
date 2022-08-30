@@ -370,7 +370,6 @@ const run = async () => {
     // task forword post by al amin arif
     app.post("/forwardedTasksCollection", async (req, res) => {
       const taskForward = req.body;
-      console.log(taskForward);
       const result = await forwardedTasksCollection.insertOne(taskForward);
       res.send(result);
     });
