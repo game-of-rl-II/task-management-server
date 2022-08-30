@@ -138,14 +138,6 @@ const run = async () => {
       }
     });
 
-    app.get("/forwarded-task/:email", async (req, res) => {
-      const email = req.params.email;
-      const query = { email: email };
-      const cursor = forwardedTasksCollection.find(query);
-      const result = await cursor.toArray();
-      res.send(result);
-    });
-
     app.get("/member-login/:id", async (req, res) => {
       const memberId = req.params.id;
       const query = { id: memberId };
@@ -347,11 +339,20 @@ const run = async () => {
       res.send(result);
     });
 
-    // task forword post by
+    // task forword post by al amin arif
     app.post("/forwardedTasksCollection", async (req, res) => {
       const taskForward = req.body;
       console.log(taskForward);
       const result = await forwardedTasksCollection.insertOne(taskForward);
+      res.send(result);
+    });
+
+    // task forword load by al amin arif
+    app.get("/forwarded-task/:teamName", async (req, res) => {
+      const name = req.params.teamName;
+      const query = { teamName: name };
+      const cursor = forwardedTasksCollection.find(query);
+      const result = await (await cursor.toArray()).reverse();
       res.send(result);
     });
   } finally {
