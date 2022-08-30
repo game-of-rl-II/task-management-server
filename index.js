@@ -125,28 +125,17 @@ const run = async () => {
     app.get("/all-notification/:finder", async (req, res) => {
       const finder = req.params.finder;
 
-      if (finder.includes('@')) {
-        const filter = { adminEmail: finder }
-        const cursor = adminNotificationsArchive.find(filter)
-        const result = await cursor.toArray()
-        res.send(result)
-
+      if (finder.includes("@")) {
+        const filter = { adminEmail: finder };
+        const cursor = adminNotificationsArchive.find(filter);
+        const result = await cursor.toArray();
+        res.send(result);
+      } else {
+        const filter = { memberId: finder };
+        const cursor = memberNotificationsArchive.find(filter);
+        const result = await cursor.toArray();
+        res.send(result);
       }
-      else {
-        const filter = { memberId: finder }
-        const cursor = memberNotificationsArchive.find(filter)
-        const result = await cursor.toArray()
-        res.send(result)
-      }
-    });
-
-
-    app.get("/forwarded-task/:email", async (req, res) => {
-      const email = req.params.email;
-      const query = { email: email }
-      const cursor = forwardedTasksCollection.find(query)
-      const result = await cursor.toArray()
-      res.send(result);
     });
 
     app.get("/member-login/:id", async (req, res) => {
@@ -226,16 +215,16 @@ const run = async () => {
     // add review
     app.put("/add-review", async (req, res) => {
       const memberId = req.query.memberId;
-      const adminEmail = req.query.adminEmail
+      const adminEmail = req.query.adminEmail;
       const body = req.body;
 
       const filter = {
         id: memberId,
-        adminEmail: adminEmail
+        adminEmail: adminEmail,
       };
-      const member = await membersCollection.findOne(filter)
+      const member = await membersCollection.findOne(filter);
       if (member === null) {
-        return res.send({ message: "The ID does not match any of your teammates" })
+        return res.send({ message: "The ID does not match any of your teammates" });
       }
       const options = { upsert: true };
       const data = {
@@ -246,9 +235,7 @@ const run = async () => {
       };
 
       const result = await membersCollection.updateOne(filter, data, options);
-      res.send(result)
-
-
+      res.send(result);
     });
     // get all task
     app.get("/task/:teamName", async (req, res) => {
@@ -321,8 +308,8 @@ const run = async () => {
       const id = req.params.id;
       const filter = { _id: ObjectId(id) };
       const result = await tasksCollection.deleteOne(filter);
-      res.send(result)
-    })
+      res.send(result);
+    });
 
     app.post("/assign-task", async (req, res) => {
       const task = req.body;
@@ -365,21 +352,37 @@ const run = async () => {
       res.send(result);
     });
 
-    app.post('/forward-task-api', async (req, res) => {
+    app.post("/forward-task-api", async (req, res) => {
       const data = req.body;
       const result = await forwardedTasksCollection.insertOne(data);
       res.send(result);
-    })
+    });
 
-    app.delete('/delete-team/:teamName', async (req, res) => {
+    app.delete("/delete-team/:teamName", async (req, res) => {
       const teamName = req.params.teamName;
       const filter = { teamName: teamName };
-      const deleteTeam = await teamsCollection.deleteOne(filter)
-      const deleteMembers = await membersCollection.deleteMany(filter)
+      const deleteTeam = await teamsCollection.deleteOne(filter);
+      const deleteMembers = await membersCollection.deleteMany(filter);
       // const deleteTasks = await tasksCollection.deleteMany(filter)
-      res.send({deleteTeam, deleteMembers})
-    })
+      res.send({ deleteTeam, deleteMembers });
+    });
 
+    // task forword post by al amin arif
+    app.post("/forwardedTasksCollection", async (req, res) => {
+      const taskForward = req.body;
+      console.log(taskForward);
+      const result = await forwardedTasksCollection.insertOne(taskForward);
+      res.send(result);
+    });
+
+    // task forword load by al amin arif
+    app.get("/forwarded-task/:teamName", async (req, res) => {
+      const name = req.params.teamName;
+      const query = { teamName: name };
+      const cursor = forwardedTasksCollection.find(query);
+      const result = await (await cursor.toArray()).reverse();
+      res.send(result);
+    });
   } finally {
   }
 };
