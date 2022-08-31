@@ -21,8 +21,8 @@ const client = new MongoClient(uri, {
 const transporter = nodemailer.createTransport({
   service: "SendinBlue",
   auth: {
-    user: process.env.SENDER_EMAIL,
-    pass: process.env.SMTP_PASSWORD,
+    user: 'arifulislam64743@gmail.com',
+    pass: 'aUOQPvSNRm26WXtC',
   },
 });
 function sendMailToMember(newMember) {
